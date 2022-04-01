@@ -16,7 +16,7 @@ import (
 
 var url = "http://192.168.1.245:9094/add"
 
-type nft struct {
+type image struct {
 	Name string            `json:"name"`
 	Cid  map[string]string `json:"cid"`
 	Size int64             `json:"size"`
@@ -48,14 +48,14 @@ func Add(c *gin.Context) {
 	// 验证 是否支持该格式上传,懒人写法
 	suffixArr := []string{"jpg", "JPG", "png", "PNG", "jpeg", "JPEG", "gif", "GIF"}
 
-	var indexStr string
+	var imageType string
 	for i := 0; i < len(suffixArr); i++ {
 		if suffixArr[i] == suffixName {
-			indexStr = "." + suffixArr[i]
+			imageType = "." + suffixArr[i]
 		}
 	}
 
-	if indexStr == "" {
+	if imageType == "" {
 		c.JSON(200, gin.H{
 			"error": "暂时不支持该格式图片上传",
 		})
@@ -65,7 +65,7 @@ func Add(c *gin.Context) {
 
 	// 图片缓存在服务器
 	//fileName := "./file/" + nameArr[0] + indexStr
-	fileName := nameArr[0] + indexStr
+	fileName := nameArr[0] + imageType
 	err = c.SaveUploadedFile(header, fileName)
 	if err != nil {
 		c.JSON(200, gin.H{
@@ -87,7 +87,7 @@ func Add(c *gin.Context) {
 	_ = os.Remove(fileName)
 
 	// 转换数据类型 && 赋值
-	var n nft
+	var n image
 	err = json.Unmarshal(body, &n)
 	if err != nil {
 		c.JSON(200, gin.H{
@@ -106,6 +106,7 @@ func Add(c *gin.Context) {
 		Name: n.Name,
 		Path: filePath,
 		Size: n.Size,
+		Type: imageType,
 	}
 
 	// 如果 cid已存在则直接返回数据
